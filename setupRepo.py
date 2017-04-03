@@ -10,6 +10,8 @@ import subprocess
 import sys
 import glob
 import argparse
+# TODO: Use GitPython https://github.com/gitpython-developers/GitPython
+# import git
 
 
 def check_for(file_name):
@@ -34,21 +36,43 @@ def check_for(file_name):
 
 
 def check_if_git_repo(args):
-    if not glob.glob(os.path.dirname(args.project_dir) + ".git"):
-        print("This is not a git repo.\n")
-        response = input("Would you like to make it one? [Y/n] ").lower()
-        if response == 'yes' or response == 'y':
-            print("git init")
-            subprocess.call("git init", shell=True)
-        elif response == 'no' or response == 'n':
-            response = input("Do you want to proceed anyway? [Y/n] ").lower()
+    # Add Python 2.7 support (begrudgingly)
+    if sys.version_info < (3, 0):
+        if not glob.glob(os.path.dirname(args.project_dir) + ".git"):
+            print("This is not a git repo.\n")
+            response = raw_input(
+                "Would you like to make it one? [Y/n] ").lower()
             if response == 'yes' or response == 'y':
-                return
+                print("git init")
+                subprocess.call("git init", shell=True)
+            elif response == 'no' or response == 'n':
+                response = raw_input(
+                    "Do you want to proceed anyway? [Y/n] ").lower()
+                if response == 'yes' or response == 'y':
+                    return
+                else:
+                    exit()
             else:
-                exit()
-        else:
-            subprocess.call("clear", shell=True)
-            check_if_git_repo(args)
+                subprocess.call("clear", shell=True)
+                check_if_git_repo(args)
+    # Python 3 (standard)
+    else:
+        if not glob.glob(os.path.dirname(args.project_dir) + ".git"):
+            print("This is not a git repo.\n")
+            response = input("Would you like to make it one? [Y/n] ").lower()
+            if response == 'yes' or response == 'y':
+                print("git init")
+                subprocess.call("git init", shell=True)
+            elif response == 'no' or response == 'n':
+                response = input(
+                    "Do you want to proceed anyway? [Y/n] ").lower()
+                if response == 'yes' or response == 'y':
+                    return
+                else:
+                    exit()
+            else:
+                subprocess.call("clear", shell=True)
+                check_if_git_repo(args)
 
 
 def set_readme(args):
@@ -148,12 +172,13 @@ def setup_build(args):
 
 
 def make_git_commit(args):
-    # TODO: Fix this
+    # TODO: Have this print to screen
     project_name = os.path.split(args.project_dir.rstrip('/'))[1]
-    subprocess.call("git status")
-    subprocess.call("git add -a")
-    subprocess.call("git commit -m \"Setup Git project repo " + project_name
-                    + " with setupRepo utility\"")
+    subprocess.check_output(["git", "status"])
+    subprocess.check_output(["git", "add", "-A"])
+    commit_message = "Setup Git project repo " + \
+        project_name + " with setupRepo utility"
+    subprocess.check_output(["git", "commit", "-m", commit_message])
 
 
 def main():
@@ -185,7 +210,7 @@ def main():
             # setup_build(args)
             pass
 
-    # make_git_commit(args)
+    make_git_commit(args)
 
 
 if __name__ == '__main__':
